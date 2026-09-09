@@ -1,0 +1,32 @@
+name: GCP Authentication Test
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test-gcp:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: river-hold-484204-h9
+          workload_identity_provider: projects/21929455949/locations/global/workloadIdentityPools/github-actions/providers/github
+          service_account: kanban-devops@river-hold-484204-h9.iam.gserviceaccount.com
+
+      - name: Check GCP authentication
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Show GCP project
+        run: gcloud config get-value project
