@@ -30,7 +30,7 @@ jobs:
 
       - name: Prepare SSH key
         run: |
-          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > "$RUNNER_TEMP/github-kanban"
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY_B64 }}" | base64 -d > "$RUNNER_TEMP/github-kanban"
           chmod 600 "$RUNNER_TEMP/github-kanban"
 
       - name: Get Artifact Registry access token
