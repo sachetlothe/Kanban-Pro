@@ -1,0 +1,12 @@
+node_modules/
+.npm-cache/
+.env
+dist/
+build/
+*.log
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl

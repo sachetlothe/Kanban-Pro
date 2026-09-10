@@ -1,0 +1,43 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: river-hold-484204-h9
+          workload_identity_provider: projects/21929455949/locations/global/workloadIdentityPools/github-actions/providers/github
+          service_account: kanban-devops@river-hold-484204-h9.iam.gserviceaccount.com
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build backend image
+        run: docker build -t us-central1-docker.pkg.dev/river-hold-484204-h9/kanban-repo/backend:latest ./backend
+
+      - name: Build frontend image
+        run: docker build -t us-central1-docker.pkg.dev/river-hold-484204-h9/kanban-repo/frontend:latest ./frontend
+
+      - name: Push backend image
+        run: docker push us-central1-docker.pkg.dev/river-hold-484204-h9/kanban-repo/backend:latest
+
+      - name: Push frontend image
+        run: docker push us-central1-docker.pkg.dev/river-hold-484204-h9/kanban-repo/frontend:latest
