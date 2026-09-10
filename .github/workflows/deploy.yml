@@ -1,0 +1,52 @@
+name: Deploy Kanban with Ansible
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: river-hold-484204-h9
+          workload_identity_provider: projects/21929455949/locations/global/workloadIdentityPools/github-actions/providers/github
+          service_account: kanban-devops@river-hold-484204-h9.iam.gserviceaccount.com
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Prepare SSH key
+        run: |
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > "$RUNNER_TEMP/github-kanban"
+          chmod 600 "$RUNNER_TEMP/github-kanban"
+
+      - name: Get Artifact Registry access token
+        id: gcp-token
+        run: |
+          echo "token=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy with Ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ARTIFACT_TOKEN: ${{ steps.gcp-token.outputs.token }}
+        run: |
+          ansible-playbook \
+            -i ansible/inventory.ini \
+            ansible/deploy.yml \
+            --private-key "$RUNNER_TEMP/github-kanban" \
+            -e "artifact_token=$ARTIFACT_TOKEN" \
+            -e "mongodb_uri=$MONGODB_URI"
