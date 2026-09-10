@@ -42,6 +42,7 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ARTIFACT_TOKEN: ${{ steps.gcp-token.outputs.token }}
         run: |
           ansible-playbook \
@@ -49,4 +50,5 @@ jobs:
             ansible/deploy.yml \
             --private-key "$RUNNER_TEMP/github-kanban" \
             -e "artifact_token=$ARTIFACT_TOKEN" \
-            -e "mongodb_uri=$MONGODB_URI"
+            -e "mongodb_uri=$MONGODB_URI" \
+            -e "jwt_secret=$JWT_SECRET"
