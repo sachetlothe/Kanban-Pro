@@ -6,11 +6,13 @@ import activityRoutes from "./routes/activityRoutes.js";
 import cardRoutes from "./routes/cardRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
+import client from "prom-client";
 
 dotenv.config();
 
 export const createApp = () => {
   const app = express();
+  client.collectDefaultMetrics();
 
   app.use(
     cors({
@@ -22,6 +24,10 @@ export const createApp = () => {
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
+  });
+  app.get("/metrics", async (_req, res) => {
+    res.set("Content-Type", client.register.contentType);
+    res.end(await client.register.metrics());
   });
 
   app.use("/api/auth", authRoutes);
